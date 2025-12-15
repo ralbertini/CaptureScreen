@@ -62,7 +62,7 @@ class ScreenReader:
             return None
 
     def getVoouParaLonge(self, image):
-        region3 = (1064, 450, 352, 53) # Voou para longe
+        region3 = (1110, 452, 346, 49) # Voou para longe
         try:
             tess_path = shutil.which("tesseract")
             if tess_path:
@@ -80,7 +80,7 @@ class ScreenReader:
             return False        
         
     def capturePremioTotal(self, image):
-        region = (600, 413, 140, 39)    # Total pago
+        region = (645, 413, 145, 33)    # Total pago
 
         try:
             tess_path = shutil.which("tesseract")
@@ -169,7 +169,8 @@ class ScreenReader:
         primeirovalorAntigo = None
         segundoValorAntigo = None
         
-        valorPremioAntigo = None
+        valorPremioValido = None
+        valorPremioValidoUltimoInserido = None
         ultimoValorPremio = None
         
         while self.running:
@@ -181,28 +182,29 @@ class ScreenReader:
                     continue
                 
                 # Extract text
-                valorPremioAntigo = ultimoValorPremio
                 ultimoValorPremio,text = self.extract_text2(image)
-                
+                print("Texto extraido: ", text)
+                print("Ultimo valor capturado: ", ultimoValorPremio)
+
+                if ultimoValorPremio:
+                    valorPremioValido = ultimoValorPremio
+            
                 primeirovalorAntigo = primeirovalorNovo
                 segundoValorAntigo = segundoValorNovo
                 
                 primeirovalorNovo, segundoValorNovo = self.parse_multipliers(text)
                 
-                print("Texto extraido: ", text)
-                                
-                print("Ultimo valor capturado: ", ultimoValorPremio)
-
-                print("segundoValorAntigo: ", primeirovalorAntigo)
+                print("primeirovalorAntigo: ", primeirovalorAntigo)
                 print("segundoValorAntigo: ", segundoValorAntigo)
                 
                 print("primeirovalorNovo: ", primeirovalorNovo)
                 print("segundoValorNovo: ", segundoValorNovo)
                 
                 if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
-                    if valorPremioAntigo:
-                        print("EITA: ",valorPremioAntigo, primeirovalorNovo, segundoValorNovo)
-                        valorPremioAntigo = None
+                    if valorPremioValido and not ultimoValorPremio:
+                        #valorPremioValidoUltimoInserido = valorPremioValido
+                        print("EITA: ",valorPremioValido, primeirovalorNovo, segundoValorNovo)
+                        valorPremioValido = None 
                 if text:
                     # Create data entry
                     entry = {
