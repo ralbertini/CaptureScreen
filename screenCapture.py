@@ -206,7 +206,6 @@ class ScreenReader:
                         print("EITA: ",valorPremioValido, primeirovalorNovo, segundoValorNovo)
                          
                         entry = {
-                            "timestamp": datetime.now().isoformat(),
                             "multiplier": primeirovalorNovo,
                             "totalvalue": valorPremioValido
                         }
@@ -323,8 +322,8 @@ def main():
     reader.start()
     
     try:
-        # Let it run for 10 seconds
-        time.sleep(3600)
+        #tempo de captura, em segundos
+        time.sleep(28800)
     except KeyboardInterrupt:
         print("\nInterrupted by user")
     finally:

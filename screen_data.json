@@ -1,622 +1,358 @@
 [
   {
-    "timestamp": "2025-12-15T17:43:59.104434",
-    "multiplier": 3.86,
-    "totalvalue": "28,314.48"
+    "multiplier": 12.56,
+    "totalvalue": "42,940.90"
   },
   {
-    "timestamp": "2025-12-15T17:44:17.471753",
-    "multiplier": 1.47,
-    "totalvalue": "567.90"
+    "multiplier": 2.51,
+    "totalvalue": "10,345.21"
   },
   {
-    "timestamp": "2025-12-15T17:44:34.133258",
-    "multiplier": 1.21,
-    "totalvalue": "585.00"
+    "multiplier": 2.06,
+    "totalvalue": "3,852.63"
   },
   {
-    "timestamp": "2025-12-15T17:44:46.840862",
-    "multiplier": 1.0,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:45:05.479919",
-    "multiplier": 1.6,
-    "totalvalue": "1,813.74"
-  },
-  {
-    "timestamp": "2025-12-15T17:45:18.463307",
-    "multiplier": 1.13,
-    "totalvalue": "552.50"
-  },
-  {
-    "timestamp": "2025-12-15T17:45:34.126963",
-    "multiplier": 1.18,
-    "totalvalue": "336.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:45:49.958050",
-    "multiplier": 1.41,
-    "totalvalue": "1,542.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:47:08.391916",
-    "multiplier": 173.47,
-    "totalvalue": "161,999.86"
-  },
-  {
-    "timestamp": "2025-12-15T17:47:35.964243",
-    "multiplier": 4.48,
-    "totalvalue": "29,143.46"
-  },
-  {
-    "timestamp": "2025-12-15T17:48:15.929095",
-    "multiplier": 7.93,
-    "totalvalue": "43,847.32"
-  },
-  {
-    "timestamp": "2025-12-15T17:48:37.246249",
-    "multiplier": 2.31,
-    "totalvalue": "15,196.90"
-  },
-  {
-    "timestamp": "2025-12-15T17:48:59.266142",
-    "multiplier": 1.62,
-    "totalvalue": "1135.20"
-  },
-  {
-    "timestamp": "2025-12-15T17:49:17.815602",
-    "multiplier": 2.49,
-    "totalvalue": "16,602.13"
-  },
-  {
-    "timestamp": "2025-12-15T17:49:39.971296",
-    "multiplier": 1.42,
-    "totalvalue": "1,030.50"
-  },
-  {
-    "timestamp": "2025-12-15T17:50:02.112236",
-    "multiplier": 2.59,
-    "totalvalue": "22,736.27"
-  },
-  {
-    "timestamp": "2025-12-15T17:50:26.371340",
-    "multiplier": 2.26,
-    "totalvalue": "18,265.95"
-  },
-  {
-    "timestamp": "2025-12-15T17:50:51.367586",
-    "multiplier": 2.67,
-    "totalvalue": "19,471.92"
-  },
-  {
-    "timestamp": "2025-12-15T17:51:09.353757",
-    "multiplier": 1.54,
-    "totalvalue": "522.78"
-  },
-  {
-    "timestamp": "2025-12-15T17:51:41.851700",
-    "multiplier": 5.37,
-    "totalvalue": "30,187.44"
-  },
-  {
-    "timestamp": "2025-12-15T17:52:01.778737",
-    "multiplier": 1.56,
-    "totalvalue": "1,676.90"
-  },
-  {
-    "timestamp": "2025-12-15T17:52:17.208667",
-    "multiplier": 1.13,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:52:36.401013",
-    "multiplier": 1.13,
-    "totalvalue": "5,826.68"
-  },
-  {
-    "timestamp": "2025-12-15T17:53:13.692497",
-    "multiplier": 5.32,
-    "totalvalue": "37,878.77"
-  },
-  {
-    "timestamp": "2025-12-15T17:53:29.839392",
-    "multiplier": 1.02,
-    "totalvalue": "317.14"
-  },
-  {
-    "timestamp": "2025-12-15T17:53:46.351772",
-    "multiplier": 1.29,
-    "totalvalue": "641.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:54:14.181974",
-    "multiplier": 3.52,
-    "totalvalue": "19,478.77"
-  },
-  {
-    "timestamp": "2025-12-15T17:54:28.189273",
-    "multiplier": 1.35,
-    "totalvalue": "1,209.93"
-  },
-  {
-    "timestamp": "2025-12-15T17:54:41.447441",
-    "multiplier": 1.0,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:55:08.680733",
-    "multiplier": 3.05,
-    "totalvalue": "21,021.83"
-  },
-  {
-    "timestamp": "2025-12-15T17:55:54.556052",
-    "multiplier": 17.48,
-    "totalvalue": "49,530.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:57:09.496679",
-    "multiplier": 186.29,
-    "totalvalue": "122,971.87"
-  },
-  {
-    "timestamp": "2025-12-15T17:57:34.772465",
-    "multiplier": 2.76,
-    "totalvalue": "12,836.97"
-  },
-  {
-    "timestamp": "2025-12-15T17:57:57.442445",
-    "multiplier": 1.68,
-    "totalvalue": "1,685.60"
-  },
-  {
-    "timestamp": "2025-12-15T17:58:19.445029",
-    "multiplier": 1.97,
-    "totalvalue": "4,547.32"
-  },
-  {
-    "timestamp": "2025-12-15T17:58:37.680034",
-    "multiplier": 1.5,
-    "totalvalue": "260.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:58:56.103485",
-    "multiplier": 1.62,
-    "totalvalue": "2,689.50"
-  },
-  {
-    "timestamp": "2025-12-15T17:59:10.704859",
-    "multiplier": 1.35,
-    "totalvalue": "2,520.73"
-  },
-  {
-    "timestamp": "2025-12-15T17:59:25.431889",
-    "multiplier": 1.0,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T17:59:43.992486",
-    "multiplier": 1.5,
-    "totalvalue": "1,251.02"
-  },
-  {
-    "timestamp": "2025-12-15T18:00:10.446383",
-    "multiplier": 3.82,
-    "totalvalue": "21,898.12"
-  },
-  {
-    "timestamp": "2025-12-15T18:00:43.794467",
-    "multiplier": 6.54,
-    "totalvalue": "44,804.41"
-  },
-  {
-    "timestamp": "2025-12-15T18:01:10.384056",
-    "multiplier": 2.23,
-    "totalvalue": "16,669.21"
-  },
-  {
-    "timestamp": "2025-12-15T18:01:33.553599",
-    "multiplier": 1.63,
-    "totalvalue": "3,013.76"
-  },
-  {
-    "timestamp": "2025-12-15T18:01:51.818217",
-    "multiplier": 1.73,
-    "totalvalue": "4,291.89"
-  },
-  {
-    "timestamp": "2025-12-15T18:02:17.678209",
-    "multiplier": 3.2,
-    "totalvalue": "17,248.35"
-  },
-  {
-    "timestamp": "2025-12-15T18:02:32.178370",
-    "multiplier": 1.09,
-    "totalvalue": "216.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:02:58.962845",
-    "multiplier": 1.95,
-    "totalvalue": "6,382.25"
-  },
-  {
-    "timestamp": "2025-12-15T18:03:10.412859",
-    "multiplier": 1.1,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:03:29.137311",
-    "multiplier": 1.47,
-    "totalvalue": "865.92"
-  },
-  {
-    "timestamp": "2025-12-15T18:03:47.551394",
     "multiplier": 1.31,
-    "totalvalue": "1140.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:04:06.311257",
-    "multiplier": 1.76,
-    "totalvalue": "1,632.09"
-  },
-  {
-    "timestamp": "2025-12-15T18:04:36.295554",
-    "multiplier": 5.44,
-    "totalvalue": "30,819.90"
-  },
-  {
-    "timestamp": "2025-12-15T18:04:54.564206",
-    "multiplier": 1.24,
-    "totalvalue": "3183.64"
-  },
-  {
-    "timestamp": "2025-12-15T18:05:09.449750",
-    "multiplier": 1.32,
-    "totalvalue": "447.45"
-  },
-  {
-    "timestamp": "2025-12-15T18:05:31.904867",
-    "multiplier": 3.12,
-    "totalvalue": "25,114.65"
-  },
-  {
-    "timestamp": "2025-12-15T18:05:53.513646",
-    "multiplier": 1.36,
-    "totalvalue": "560.32"
-  },
-  {
-    "timestamp": "2025-12-15T18:06:09.070831",
-    "multiplier": 1.6,
-    "totalvalue": "5,206.76"
-  },
-  {
-    "timestamp": "2025-12-15T18:06:59.455626",
-    "multiplier": 17.97,
-    "totalvalue": "56,363.23"
-  },
-  {
-    "timestamp": "2025-12-15T18:07:32.527206",
-    "multiplier": 7.02,
-    "totalvalue": "34,206.03"
-  },
-  {
-    "timestamp": "2025-12-15T18:07:43.959956",
-    "multiplier": 1.06,
     "totalvalue": "0.00"
   },
   {
-    "timestamp": "2025-12-15T18:08:03.079249",
-    "multiplier": 1.57,
-    "totalvalue": "2134.19"
-  },
-  {
-    "timestamp": "2025-12-15T18:08:38.736878",
-    "multiplier": 6.25,
-    "totalvalue": "37,838.23"
-  },
-  {
-    "timestamp": "2025-12-15T18:09:20.325184",
-    "multiplier": 1.0,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:09:35.000155",
-    "multiplier": 1.02,
-    "totalvalue": "505.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:09:51.744919",
-    "multiplier": 1.6,
-    "totalvalue": "1,926.80"
-  },
-  {
-    "timestamp": "2025-12-15T18:10:08.501689",
-    "multiplier": 1.24,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:10:21.608042",
-    "multiplier": 1.07,
-    "totalvalue": "505.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:10:36.469855",
-    "multiplier": 1.25,
-    "totalvalue": "396.90"
-  },
-  {
-    "timestamp": "2025-12-15T18:11:07.277780",
-    "multiplier": 2.1,
-    "totalvalue": "7,483.12"
-  },
-  {
-    "timestamp": "2025-12-15T18:11:40.442028",
-    "multiplier": 6.3,
-    "totalvalue": "33,723.85"
-  },
-  {
-    "timestamp": "2025-12-15T18:12:00.257897",
-    "multiplier": 1.33,
-    "totalvalue": "510.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:12:11.188598",
-    "multiplier": 1.32,
-    "totalvalue": "706.50"
-  },
-  {
-    "timestamp": "2025-12-15T18:12:23.257275",
-    "multiplier": 1.03,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:12:51.042650",
-    "multiplier": 1.81,
-    "totalvalue": "3,563.48"
-  },
-  {
-    "timestamp": "2025-12-15T18:13:53.021495",
-    "multiplier": 22.5,
-    "totalvalue": "56,319.48"
-  },
-  {
-    "timestamp": "2025-12-15T18:14:10.231190",
-    "multiplier": 1.48,
-    "totalvalue": "556.23."
-  },
-  {
-    "timestamp": "2025-12-15T18:14:23.963226",
-    "multiplier": 1.1,
-    "totalvalue": "130.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:14:43.878241",
-    "multiplier": 1.29,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-15T18:15:06.764848",
-    "multiplier": 2.18,
-    "totalvalue": "11,240.56"
-  },
-  {
-    "timestamp": "2025-12-15T18:15:20.385176",
-    "multiplier": 1.11,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-16T08:05:51.960629",
-    "multiplier": 15.41,
-    "totalvalue": "58,972.16"
-  },
-  {
-    "timestamp": "2025-12-16T08:06:14.101487",
-    "multiplier": 2.14,
-    "totalvalue": "9,362.61"
-  },
-  {
-    "timestamp": "2025-12-16T08:06:36.433501",
-    "multiplier": 2.68,
-    "totalvalue": "17,385.26"
-  },
-  {
-    "timestamp": "2025-12-16T08:07:27.416025",
-    "multiplier": 24.97,
-    "totalvalue": "84,636.21"
-  },
-  {
-    "timestamp": "2025-12-16T08:12:53.700895",
-    "multiplier": 1.1,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-16T08:13:22.135337",
-    "multiplier": 4.79,
-    "totalvalue": "24,960.77"
-  },
-  {
-    "timestamp": "2025-12-16T08:14:04.125286",
-    "multiplier": 10.46,
-    "totalvalue": "51,002.89"
-  },
-  {
-    "timestamp": "2025-12-16T08:14:26.668173",
-    "multiplier": 2.37,
-    "totalvalue": "15,606.60"
-  },
-  {
-    "timestamp": "2025-12-16T08:14:42.114423",
-    "multiplier": 1.11,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-16T08:14:54.528266",
-    "multiplier": 17.0,
-    "totalvalue": "0.00"
-  },
-  {
-    "timestamp": "2025-12-16T08:15:29.699709",
-    "multiplier": 5.41,
-    "totalvalue": "32,976.78"
-  },
-  {
-    "timestamp": "2025-12-16T08:16:01.160150",
-    "multiplier": 5.88,
-    "totalvalue": "42,582.57"
-  },
-  {
-    "timestamp": "2025-12-16T08:16:59.995143",
-    "multiplier": 47.16,
-    "totalvalue": "140,679.88"
-  },
-  {
-    "timestamp": "2025-12-16T08:17:18.899496",
     "multiplier": 1.13,
-    "totalvalue": "1,637.40"
+    "totalvalue": "0.00"
   },
   {
-    "timestamp": "2025-12-16T08:17:43.011431",
-    "multiplier": 2.66,
-    "totalvalue": "16,960.19"
+    "multiplier": 3.02,
+    "totalvalue": "21,494.48"
   },
   {
-    "timestamp": "2025-12-16T08:18:01.458541",
-    "multiplier": 1.42,
-    "totalvalue": "303.34"
+    "multiplier": 2.05,
+    "totalvalue": "7187.49"
   },
   {
-    "timestamp": "2025-12-16T08:18:41.798663",
-    "multiplier": 11.12,
-    "totalvalue": "78,763.66"
+    "multiplier": 3.15,
+    "totalvalue": "21,010.92"
   },
   {
-    "timestamp": "2025-12-16T08:19:05.040147",
-    "multiplier": 2.38,
-    "totalvalue": "9148.27"
+    "multiplier": 3.48,
+    "totalvalue": "26,577.76"
   },
   {
-    "timestamp": "2025-12-16T08:19:36.549373",
-    "multiplier": 5.37,
-    "totalvalue": "66,193.97"
+    "multiplier": 1.48,
+    "totalvalue": "525.20"
   },
   {
-    "timestamp": "2025-12-16T08:19:51.238968",
-    "multiplier": 1.08,
-    "totalvalue": "1,420.40"
+    "multiplier": 1.15,
+    "totalvalue": "520.00"
   },
   {
-    "timestamp": "2025-12-16T08:20:08.113287",
-    "multiplier": 1.45,
-    "totalvalue": "1145.00"
+    "multiplier": 1.14,
+    "totalvalue": "266.40"
   },
   {
-    "timestamp": "2025-12-16T08:20:45.496345",
-    "multiplier": 8.77,
-    "totalvalue": "89,018.03"
+    "multiplier": 2.63,
+    "totalvalue": "13,513.47"
   },
   {
-    "timestamp": "2025-12-16T08:21:03.533305",
-    "multiplier": 1.35,
-    "totalvalue": "1182.36"
+    "multiplier": 1.6,
+    "totalvalue": "1,203.70"
   },
   {
-    "timestamp": "2025-12-16T08:21:14.789555",
+    "multiplier": 1.28,
+    "totalvalue": "516.00"
+  },
+  {
+    "multiplier": 1.14,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 1.15,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 1.15,
+    "totalvalue": "53,545.55"
+  },
+  {
+    "multiplier": 21.52,
+    "totalvalue": "46,840.15"
+  },
+  {
+    "multiplier": 2.43,
+    "totalvalue": "8,086.84"
+  },
+  {
     "multiplier": 1.04,
     "totalvalue": "0.00"
   },
   {
-    "timestamp": "2025-12-16T08:21:35.467404",
-    "multiplier": 1.96,
-    "totalvalue": "410114"
+    "multiplier": 17.0,
+    "totalvalue": "182.24"
   },
   {
-    "timestamp": "2025-12-16T08:21:52.035761",
-    "multiplier": 1.75,
-    "totalvalue": "5,130.17"
-  },
-  {
-    "timestamp": "2025-12-16T08:22:31.822533",
-    "multiplier": 11.06,
-    "totalvalue": "42,120.41"
-  },
-  {
-    "timestamp": "2025-12-16T08:23:06.652716",
-    "multiplier": 6.48,
-    "totalvalue": "38,774.99"
-  },
-  {
-    "timestamp": "2025-12-16T08:23:35.870658",
-    "multiplier": 3.71,
-    "totalvalue": "32,927.53"
-  },
-  {
-    "timestamp": "2025-12-16T08:23:55.772938",
-    "multiplier": 1.99,
-    "totalvalue": "2,756.60"
-  },
-  {
-    "timestamp": "2025-12-16T08:24:15.452405",
-    "multiplier": 1.76,
-    "totalvalue": "1,213.93"
-  },
-  {
-    "timestamp": "2025-12-16T08:24:35.094293",
-    "multiplier": 1.52,
-    "totalvalue": "1,414.00"
-  },
-  {
-    "timestamp": "2025-12-16T08:24:58.765807",
-    "multiplier": 3.27,
-    "totalvalue": "16,886.66"
-  },
-  {
-    "timestamp": "2025-12-16T08:25:11.427606",
-    "multiplier": 1.0,
+    "multiplier": 1.31,
     "totalvalue": "0.00"
   },
   {
-    "timestamp": "2025-12-16T08:25:48.469040",
-    "multiplier": 6.52,
-    "totalvalue": "54,375.18"
+    "multiplier": 4.37,
+    "totalvalue": "26,307.51"
   },
   {
-    "timestamp": "2025-12-16T08:26:10.494513",
-    "multiplier": 2.04,
-    "totalvalue": "5,193.20"
+    "multiplier": 6.38,
+    "totalvalue": "35,760.66"
   },
   {
-    "timestamp": "2025-12-16T08:26:21.923128",
-    "multiplier": 1.24,
-    "totalvalue": "565.00"
+    "multiplier": 1.93,
+    "totalvalue": "2,406.51"
   },
   {
-    "timestamp": "2025-12-16T08:26:45.886504",
-    "multiplier": 2.34,
-    "totalvalue": "11,167.78"
+    "multiplier": 2.76,
+    "totalvalue": "10,786.41"
   },
   {
-    "timestamp": "2025-12-16T08:26:55.861227",
+    "multiplier": 1.23,
+    "totalvalue": "204.02"
+  },
+  {
+    "multiplier": 1.22,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 2.11,
+    "totalvalue": "13,211.89"
+  },
+  {
+    "multiplier": 1.15,
+    "totalvalue": "202.00"
+  },
+  {
+    "multiplier": 1.22,
+    "totalvalue": "178.50"
+  },
+  {
+    "multiplier": 7.1,
+    "totalvalue": "41,166.72"
+  },
+  {
+    "multiplier": 4.4,
+    "totalvalue": "27,888.95"
+  },
+  {
+    "multiplier": 3.0,
+    "totalvalue": "19,307.73"
+  },
+  {
+    "multiplier": 1.6,
+    "totalvalue": "3,539.00"
+  },
+  {
+    "multiplier": 1.64,
+    "totalvalue": "177.60"
+  },
+  {
+    "multiplier": 1.67,
+    "totalvalue": "1,512.00"
+  },
+  {
     "multiplier": 1.06,
     "totalvalue": "0.00"
   },
   {
-    "timestamp": "2025-12-16T08:27:14.870852",
-    "multiplier": 1.72,
-    "totalvalue": "3,460.20"
+    "multiplier": 1.63,
+    "totalvalue": "3,414.37"
   },
   {
-    "timestamp": "2025-12-16T08:27:30.391881",
-    "multiplier": 1.18,
-    "totalvalue": "635.65"
+    "multiplier": 1.27,
+    "totalvalue": "0.00"
   },
   {
-    "timestamp": "2025-12-16T08:27:46.181889",
-    "multiplier": 1.46,
-    "totalvalue": "580.30"
+    "multiplier": 3.06,
+    "totalvalue": "15,810.91"
   },
   {
-    "timestamp": "2025-12-16T08:27:58.825096",
-    "multiplier": 1.12,
-    "totalvalue": "208.00"
+    "multiplier": 1.24,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 1.32,
+    "totalvalue": "126.00"
+  },
+  {
+    "multiplier": 2.06,
+    "totalvalue": "5,733.25"
+  },
+  {
+    "multiplier": 2.03,
+    "totalvalue": "3,599.12"
+  },
+  {
+    "multiplier": 1.92,
+    "totalvalue": "3,180.25"
+  },
+  {
+    "multiplier": 18.64,
+    "totalvalue": "42,587.55"
+  },
+  {
+    "multiplier": 1.03,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 1.45,
+    "totalvalue": "610.00"
+  },
+  {
+    "multiplier": 1.36,
+    "totalvalue": "1,426.75"
+  },
+  {
+    "multiplier": 1.43,
+    "totalvalue": "1,005.00"
+  },
+  {
+    "multiplier": 2.0,
+    "totalvalue": "3,754.20"
+  },
+  {
+    "multiplier": 2.36,
+    "totalvalue": "9,919.01"
+  },
+  {
+    "multiplier": 3.12,
+    "totalvalue": "13,425.99"
+  },
+  {
+    "multiplier": 1.0,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 2.13,
+    "totalvalue": "7812.63"
+  },
+  {
+    "multiplier": 1.04,
+    "totalvalue": "515.00"
+  },
+  {
+    "multiplier": 2.3,
+    "totalvalue": "10,823.72"
+  },
+  {
+    "multiplier": 2.4,
+    "totalvalue": "6,525.57"
+  },
+  {
+    "multiplier": 2.99,
+    "totalvalue": "12,548.02"
+  },
+  {
+    "multiplier": 2.26,
+    "totalvalue": "9,903.40"
+  },
+  {
+    "multiplier": 7.71,
+    "totalvalue": "24,534.52"
+  },
+  {
+    "multiplier": 1.05,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 1.92,
+    "totalvalue": "2,391.10"
+  },
+  {
+    "multiplier": 14.8,
+    "totalvalue": "37,038.29"
+  },
+  {
+    "multiplier": 1.41,
+    "totalvalue": "408.00"
+  },
+  {
+    "multiplier": 2.59,
+    "totalvalue": "13,463.74"
+  },
+  {
+    "multiplier": 7.23,
+    "totalvalue": "26,979.68"
+  },
+  {
+    "multiplier": 1.13,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 1.81,
+    "totalvalue": "1,688.00"
+  },
+  {
+    "multiplier": 24.48,
+    "totalvalue": "74,080.77"
+  },
+  {
+    "multiplier": 1.33,
+    "totalvalue": "0.00"
+  },
+  {
+    "multiplier": 24.17,
+    "totalvalue": "62,687.34"
+  },
+  {
+    "multiplier": 3.68,
+    "totalvalue": "13,228.09"
+  },
+  {
+    "multiplier": 5.73,
+    "totalvalue": "31,829.64"
+  },
+  {
+    "multiplier": 4.35,
+    "totalvalue": "35,780.63"
+  },
+  {
+    "multiplier": 1.33,
+    "totalvalue": "396.00"
+  },
+  {
+    "multiplier": 1.98,
+    "totalvalue": "3,382.66"
+  },
+  {
+    "multiplier": 1.98,
+    "totalvalue": "2,626.50"
+  },
+  {
+    "multiplier": 2.76,
+    "totalvalue": "14,687.65"
+  },
+  {
+    "multiplier": 1.13,
+    "totalvalue": "510.00"
+  },
+  {
+    "multiplier": 2.48,
+    "totalvalue": "11,539.72"
+  },
+  {
+    "multiplier": 2.08,
+    "totalvalue": "9,855.57"
+  },
+  {
+    "multiplier": 2.38,
+    "totalvalue": "12,329.47"
+  },
+  {
+    "multiplier": 4.12,
+    "totalvalue": "20,873.76"
+  },
+  {
+    "multiplier": 3.4,
+    "totalvalue": "17,270.83"
+  },
+  {
+    "multiplier": 9.55,
+    "totalvalue": "35,316.58"
+  },
+  {
+    "multiplier": 6.01,
+    "totalvalue": "30,980.94"
   }
 ]

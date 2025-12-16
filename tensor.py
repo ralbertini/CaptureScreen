@@ -49,17 +49,13 @@ def time_cyc_features(dt: datetime) -> Tuple[float, float]:
     angle = 2 * math.pi * (sec / seconds_in_day)
     return math.sin(angle), math.cos(angle)
 
-def build_feature_vector(ts_iso: str, multiplier: float, totalvalue: float) -> np.ndarray:
+def build_feature_vector(multiplier: float, totalvalue: float) -> np.ndarray:
     """
     Cria o vetor de atributos X para inferência.
     - multiplier
     - totalvalue (numérico)
     - unitvalue = totalvalue / multiplier
-    - time_sin, time_cos (cíclicos em 24h)
     """
-    dt = to_datetime_iso(ts_iso)
-    time_sin, time_cos = time_cyc_features(dt)
-
     if multiplier is None or (isinstance(multiplier, float) and np.isnan(multiplier)):
         multiplier = 0.0
 
@@ -69,7 +65,7 @@ def build_feature_vector(ts_iso: str, multiplier: float, totalvalue: float) -> n
 
     unitvalue = tv / multiplier if (multiplier is not None and multiplier != 0) else 0.0
 
-    return np.array([multiplier, tv, unitvalue, time_sin, time_cos], dtype=np.float32)
+    return np.array([multiplier, tv, unitvalue], dtype=np.float32)
 
 # ------------------------------------------------------------
 # Preparação do dataset a partir do JSON
@@ -83,32 +79,19 @@ def load_and_prepare_dataset(json_path: str) -> Tuple[np.ndarray, np.ndarray]:
       - multiplier[i]
       - totalvalue_num[i]
       - unitvalue[i] = totalvalue_num[i] / multiplier[i]
-      - time_sin[i], time_cos[i] (ciclo de 24h)
     """
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     df = pd.DataFrame(data)
-    # Converter timestamp
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
     # Normalizar totalvalue
     df['totalvalue_num'] = df['totalvalue'].apply(parse_totalvalue).astype(float)
     # Calcular unitvalue
     df['unitvalue'] = df['totalvalue_num'] / df['multiplier']
     df['unitvalue'] = df['unitvalue'].replace([np.inf, -np.inf], np.nan).fillna(0.0)
 
-    # Ordenar por tempo
-    df = df.sort_values('timestamp').reset_index(drop=True)
-
-    # Features cíclicas
-    seconds_in_day = 24 * 60 * 60
-    secs = df['timestamp'].dt.hour * 3600 + df['timestamp'].dt.minute * 60 + df['timestamp'].dt.second
-    angles = 2 * math.pi * (secs / seconds_in_day)
-    df['time_sin'] = np.sin(angles)
-    df['time_cos'] = np.cos(angles)
-
     # Construir X para linhas 0..n-2 e y baseado em multiplier[i+1]
-    X_cols = ['multiplier', 'totalvalue_num', 'unitvalue', 'time_sin', 'time_cos']
+    X_cols = ['multiplier', 'totalvalue_num', 'unitvalue']
     X_list: List[np.ndarray] = []
     y_list: List[int] = []
 
@@ -171,7 +154,7 @@ def compute_class_weights(y: np.ndarray) -> Dict[int, float]:
 class NextMultiplierModel:
     def __init__(self):
         self.model: tf.keras.Model = None
-        self.input_dim: int = 5  # [multiplier, totalvalue, unitvalue, time_sin, time_cos]
+        self.input_dim: int = 3  # [multiplier, totalvalue, unitvalue]
 
     def fit(self, json_path: str, epochs: int = 100) -> Dict[str, Any]:
         """
@@ -231,15 +214,15 @@ class NextMultiplierModel:
             "val_metrics": metrics
         }
 
-    def predict_prob(self, timestamp_iso: str, multiplier: float, totalvalue: float) -> float:
+    def predict_prob(self, multiplier: float, totalvalue: float) -> float:
         """
         Retorna a probabilidade do próximo multiplier ser > 2.0,
-        dado o estado atual (timestamp_iso, multiplier, totalvalue).
+        dado o estado atual (multiplier, totalvalue).
         """
         if self.model is None:
             raise RuntimeError("Modelo não treinado. Chame .fit(json_path) antes.")
 
-        x = build_feature_vector(timestamp_iso, multiplier, totalvalue).reshape(1, -1)
+        x = build_feature_vector(multiplier, totalvalue).reshape(1, -1)
         prob = float(self.model.predict(x, verbose=0)[0][0])
         return prob
 
@@ -255,20 +238,19 @@ class NextMultiplierModel:
 # Exemplo de uso
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    # Caminho do arquivo JSON (substitua pelo seu)
+    # Caminho do arquivo JSON de treinamento
     json_path = "screen_data.json"
 
     model = NextMultiplierModel()
     info = model.fit(json_path=json_path, epochs=150)
     print("Resumo do treino:", info)
 
-    # Exemplo de predição: forneça data/hora atual ISO, multiplier e totalvalue
-    ts_now = "2025-12-15T16:47:00"  # exemplo
-    mult_now = 1.10
-    total_now = 210.00
+    # Exemplo de predição: forneça multiplier e totalvalue
+    #mult_now = 1.10
+    #total_now = 210.00
 
-    prob = model.predict_prob(ts_now, mult_now, total_now)
-    print(f"Probabilidade de próximo multiplier > 2.0: {prob:.4f}")
+    #prob = model.predict_prob(mult_now, total_now)
+    print(f"Modelo Treinado!!")
 
     # Salvar modelo (opcional)
     model.save("next_multiplier_model.keras")
