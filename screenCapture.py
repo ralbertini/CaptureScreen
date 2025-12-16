@@ -16,7 +16,7 @@ import shutil
 import sys
 
 class ScreenReader:
-    def __init__(self, interval=0.1, region=None, save_screenshots=True):
+    def __init__(self, interval=1.0, region=None, save_screenshots=False):
         """
         Initialize screen reader
         
@@ -101,7 +101,7 @@ class ScreenReader:
           
     def extract_text2(self, image):
 
-        region = (745, 359, 857, 38)      # Multiplicadores
+        region = (745, 359, 245, 38)      # Multiplicadores
         
         try:
             tess_path = shutil.which("tesseract")
@@ -183,7 +183,7 @@ class ScreenReader:
                 
                 # Extract text
                 ultimoValorPremio,text = self.extract_text2(image)
-                print("Texto extraido: ", text)
+                print("Texto extraido: ", text, "timestamp: ", datetime.now().isoformat())
                 print("Ultimo valor capturado: ", ultimoValorPremio)
 
                 if ultimoValorPremio:
@@ -204,28 +204,24 @@ class ScreenReader:
                     if valorPremioValido and not ultimoValorPremio:
                         #valorPremioValidoUltimoInserido = valorPremioValido
                         print("EITA: ",valorPremioValido, primeirovalorNovo, segundoValorNovo)
-                        valorPremioValido = None 
-                if text:
-                    # Create data entry
-                    entry = {
-                        "timestamp": datetime.now().isoformat(),
-                        "text": text,
-                        "region": self.region
-                    }
+                         
+                        entry = {
+                            "timestamp": datetime.now().isoformat(),
+                            "multiplier": primeirovalorNovo,
+                            "totalvalue": valorPremioValido
+                        }
                 
-                    # Save screenshot if enabled
-                    if self.save_screenshots:
-                        filename = self.screenshots_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.png"
-                    image.save(filename)
-                    entry["screenshot"] = str(filename)
-                    #por enquanto nao salva a imagem
-                    # Append to data array
-                    with self.lock:
-                        self.data.append(entry)
-                
-                    #print(f"[{entry['timestamp']}] Captured: {text[:20]}...")
-               # else:
-                #    print("No text extracted.")
+                        # Save screenshot if enabled
+                        if self.save_screenshots:
+                            filename = self.screenshots_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.png"
+                            image.save(filename)
+                            entry["screenshot"] = str(filename)
+                        #por enquanto nao salva a imagem
+                        # Append to data array
+                        with self.lock:
+                            self.data.append(entry)
+
+                        valorPremioValido = None
                 
             except Exception as e:
                 print(f"Error in capture loop: {e}")
@@ -269,8 +265,23 @@ class ScreenReader:
         """Export captured data to file"""
         import json
         with self.lock:
+            # Read existing data if file exists
+            existing_data = []
+            if os.path.exists(filename):
+                try:
+                    with open(filename, 'r') as f:
+                        existing_data = json.load(f)
+                        if not isinstance(existing_data, list):
+                            existing_data = []
+                except (json.JSONDecodeError, IOError):
+                    existing_data = []
+            
+            # Append new data
+            existing_data.extend(self.data)
+            
+            # Write back
             with open(filename, 'w') as f:
-                json.dump(self.data, f, indent=2)
+                json.dump(existing_data, f, indent=2)
         print(f"Data exported to {filename}")
 
 
@@ -307,7 +318,7 @@ def main():
             return (0, 0, 800, 600)
     
     chrome_region = get_chrome_window_bounds()
-    reader = ScreenReader(interval=1.0, region=chrome_region, save_screenshots=True)
+    reader = ScreenReader(interval=1.5, region=chrome_region, save_screenshots=False)
     
     reader.start()
     
@@ -322,11 +333,11 @@ def main():
         # Print results
         data = reader.get_data()
         print(f"\n\nCaptured {len(data)} entries:")
-        for i, entry in enumerate(data, 1):
-            print(f"\n{i}. [{entry['timestamp']}]")
-            print(f"   Text: {entry['text'][:100]}...")
-            if 'screenshot' in entry:
-                print(f"   Screenshot: {entry['screenshot']}")
+        #for i, entry in enumerate(data, 1):
+        #    print(f"\n{i}. [{entry['timestamp']}]")
+        #    print(f"   Text: {entry['text'][:100]}...")
+        #    if 'screenshot' in entry:
+        #        print(f"   Screenshot: {entry['screenshot']}")
         
         # Export data
         reader.export_data("screen_data.json")
