@@ -41,7 +41,7 @@ class ScreenReader:
         Capture a screenshot using macOS screencapture command
         Returns PIL Image object
         """
-        temp_file = "/tmp/screen_capture.png"
+        temp_file = "/tmp/capture.png"
         
         if self.region:
             x, y, width, height = self.region
@@ -112,10 +112,10 @@ class ScreenReader:
             voou = self.getVoouParaLonge(image)
             ultimovalor = None
             if voou:
-                print("Voou para longe detected")
+                #print("Voou para longe detected")
                 opa = self.capturePremioTotal(image)
                 if opa:
-                    print("Valor do premio total: ", opa)
+                    #print("Valor do premio total: ", opa)
                     ultimovalor = opa
             texts = []
             x, y, w, h = region
@@ -180,47 +180,48 @@ class ScreenReader:
                 if image is None:
                     time.sleep(self.interval)
                     continue
+                else:
                 
-                # Extract text
-                ultimoValorPremio,text = self.extract_text2(image)
-                print("Texto extraido: ", text, "timestamp: ", datetime.now().isoformat())
-                print("Ultimo valor capturado: ", ultimoValorPremio)
+                    # Extract text
+                    ultimoValorPremio,text = self.extract_text2(image)
+                    #print("Texto extraido: ", text, "timestamp: ", datetime.now().isoformat())
+                    #print("Ultimo valor capturado: ", ultimoValorPremio)
 
-                if ultimoValorPremio:
-                    valorPremioValido = ultimoValorPremio
+                    if ultimoValorPremio:
+                        valorPremioValido = ultimoValorPremio
             
-                primeirovalorAntigo = primeirovalorNovo
-                segundoValorAntigo = segundoValorNovo
+                    primeirovalorAntigo = primeirovalorNovo
+                    segundoValorAntigo = segundoValorNovo
                 
-                primeirovalorNovo, segundoValorNovo = self.parse_multipliers(text)
+                    primeirovalorNovo, segundoValorNovo = self.parse_multipliers(text)
                 
-                print("primeirovalorAntigo: ", primeirovalorAntigo)
-                print("segundoValorAntigo: ", segundoValorAntigo)
+                    #   print("primeirovalorAntigo: ", primeirovalorAntigo)
+                    #   print("segundoValorAntigo: ", segundoValorAntigo)
                 
-                print("primeirovalorNovo: ", primeirovalorNovo)
-                print("segundoValorNovo: ", segundoValorNovo)
+                    #   print("primeirovalorNovo: ", primeirovalorNovo)
+                    #  print("segundoValorNovo: ", segundoValorNovo)
                 
-                if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
-                    if valorPremioValido and not ultimoValorPremio:
-                        #valorPremioValidoUltimoInserido = valorPremioValido
-                        print("EITA: ",valorPremioValido, primeirovalorNovo, segundoValorNovo)
+                    if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
+                        if valorPremioValido and not ultimoValorPremio:
+                            #valorPremioValidoUltimoInserido = valorPremioValido
+                            print("ADICIONADO: ",valorPremioValido, primeirovalorNovo)
                          
-                        entry = {
-                            "multiplier": primeirovalorNovo,
-                            "totalvalue": valorPremioValido
-                        }
+                            entry = {
+                                "multiplier": primeirovalorNovo,
+                                "totalvalue": valorPremioValido
+                            }
                 
-                        # Save screenshot if enabled
-                        if self.save_screenshots:
-                            filename = self.screenshots_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.png"
-                            image.save(filename)
-                            entry["screenshot"] = str(filename)
-                        #por enquanto nao salva a imagem
-                        # Append to data array
-                        with self.lock:
-                            self.data.append(entry)
+                            # Save screenshot if enabled
+                            if self.save_screenshots:
+                                filename = self.screenshots_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.png"
+                                image.save(filename)
+                                entry["screenshot"] = str(filename)
+                            #por enquanto nao salva a imagem
+                            # Append to data array
+                            with self.lock:
+                                self.data.append(entry)
 
-                        valorPremioValido = None
+                            valorPremioValido = None
                 
             except Exception as e:
                 print(f"Error in capture loop: {e}")

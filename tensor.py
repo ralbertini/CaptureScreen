@@ -2,9 +2,7 @@
 import json
 import math
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from datetime import datetime
 from typing import Tuple, List, Dict, Any
 
 # Fixar sementes para reprodutibilidade (não elimina variação com poucos dados)
@@ -34,20 +32,6 @@ def parse_totalvalue(value_str: str) -> float:
     except ValueError:
         # Se não parseou, retorna NaN
         return np.nan
-
-def to_datetime_iso(ts: str) -> datetime:
-    """Converte timestamp ISO (ex.: '2025-12-15T16:41:40.496986') para datetime."""
-    return pd.to_datetime(ts)
-
-def time_cyc_features(dt: datetime) -> Tuple[float, float]:
-    """
-    Converte horário em features cíclicas (sin/cos) ao longo de 24h.
-    Isso evita descontinuidade entre 23:59 e 00:00.
-    """
-    seconds_in_day = 24 * 60 * 60
-    sec = dt.hour * 3600 + dt.minute * 60 + dt.second
-    angle = 2 * math.pi * (sec / seconds_in_day)
-    return math.sin(angle), math.cos(angle)
 
 def build_feature_vector(multiplier: float, totalvalue: float) -> np.ndarray:
     """
@@ -83,29 +67,40 @@ def load_and_prepare_dataset(json_path: str) -> Tuple[np.ndarray, np.ndarray]:
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    df = pd.DataFrame(data)
-    # Normalizar totalvalue
-    df['totalvalue_num'] = df['totalvalue'].apply(parse_totalvalue).astype(float)
-    # Calcular unitvalue
-    df['unitvalue'] = df['totalvalue_num'] / df['multiplier']
-    df['unitvalue'] = df['unitvalue'].replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
+    # Processar dados sem pandas
+    multipliers = []
+    totalvalues = []
+    
+    for entry in data:
+        mult = entry.get('multiplier')
+        tv_str = entry.get('totalvalue')
+        if mult is not None and tv_str is not None:
+            tv = parse_totalvalue(tv_str)
+            if not np.isnan(tv):
+                multipliers.append(float(mult))
+                totalvalues.append(tv)
+    
+    multipliers = np.array(multipliers, dtype=np.float32)
+    totalvalues = np.array(totalvalues, dtype=np.float32)
+    
     # Construir X para linhas 0..n-2 e y baseado em multiplier[i+1]
-    X_cols = ['multiplier', 'totalvalue_num', 'unitvalue']
-    X_list: List[np.ndarray] = []
-    y_list: List[int] = []
-
-    for i in range(len(df) - 1):
-        row = df.iloc[i]
-        next_row = df.iloc[i + 1]
-        x = row[X_cols].values.astype(np.float32)
-        y = 1 if next_row['multiplier'] > 2.0 else 0
+    X_list = []
+    y_list = []
+    
+    for i in range(len(multipliers) - 1):
+        mult = multipliers[i]
+        tv = totalvalues[i]
+        unitvalue = tv / mult if mult != 0 else 0.0
+        
+        x = np.array([mult, tv, unitvalue], dtype=np.float32)
+        y = 1 if multipliers[i + 1] > 2.0 else 0
+        
         X_list.append(x)
         y_list.append(y)
-
-    X = np.vstack(X_list) if len(X_list) > 0 else np.empty((0, len(X_cols)), dtype=np.float32)
+    
+    X = np.vstack(X_list) if len(X_list) > 0 else np.empty((0, 3), dtype=np.float32)
     y = np.array(y_list, dtype=np.float32)
-
+    
     return X, y
 
 # ------------------------------------------------------------
@@ -114,6 +109,7 @@ def load_and_prepare_dataset(json_path: str) -> Tuple[np.ndarray, np.ndarray]:
 def build_model(input_dim: int, train_X: np.ndarray) -> tf.keras.Model:
     """
     Constrói um MLP simples com camada de Normalization adaptada ao train_X.
+    Para dataset pequeno, usa arquitetura mais simples com regularização forte.
     """
     normalizer = tf.keras.layers.Normalization(axis=-1)
     if train_X.shape[0] > 0:
@@ -122,14 +118,14 @@ def build_model(input_dim: int, train_X: np.ndarray) -> tf.keras.Model:
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(input_dim,)),
         normalizer,
-        tf.keras.layers.Dense(16, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(8, activation='relu'),
-        tf.keras.layers.Dense(1, activation='sigmoid')  # probabilidade
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Dense(4, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+        tf.keras.layers.Dense(1, activation='sigmoid')
     ])
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         loss='binary_crossentropy',
         metrics=[tf.keras.metrics.AUC(name='auc'), tf.keras.metrics.Precision(name='precision'), tf.keras.metrics.Recall(name='recall')]
     )
@@ -159,17 +155,18 @@ class NextMultiplierModel:
     def fit(self, json_path: str, epochs: int = 100) -> Dict[str, Any]:
         """
         Treina o modelo a partir do JSON.
-        Faz split temporal simples: últimas amostras para validação (se existirem).
+        Ajustado para dataset maior: mais epochs possíveis, validação robusta.
         """
         X, y = load_and_prepare_dataset(json_path)
 
         if len(X) < 3:
             print("Aviso: menos de 3 amostras de treino. Treino será extremamente instável.")
-        # Split temporal: último 20% para validação, ao menos 1 (se possível)
-        if len(X) >= 5:
-            val_size = max(1, int(0.2 * len(X)))
-        elif len(X) >= 2:
-            val_size = 1
+        
+        # Para dataset maior, usar validação adequada
+        if len(X) >= 20:
+            val_size = max(5, int(0.2 * len(X)))  # 20% para validação
+        elif len(X) >= 10:
+            val_size = max(2, int(0.15 * len(X)))
         else:
             val_size = 0
 
@@ -188,13 +185,22 @@ class NextMultiplierModel:
         callbacks = []
         if validation_data is not None:
             callbacks = [
-                tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=10, restore_best_weights=True)
+                tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=20, restore_best_weights=True, mode='max'),
+                tf.keras.callbacks.ReduceLROnPlateau(monitor='val_auc', factor=0.5, patience=10, min_lr=1e-5, mode='max')
             ]
 
+        # Batch size adaptativo
+        if len(train_X) > 50:
+            batch_size = 8
+        elif len(train_X) > 20:
+            batch_size = 4
+        else:
+            batch_size = max(2, len(train_X) // 4)
+        
         history = self.model.fit(
             train_X, train_y,
             epochs=epochs,
-            batch_size=max(1, min(8, len(train_X))),
+            batch_size=batch_size,
             validation_data=validation_data,
             class_weight=class_weights,
             verbose=0,
@@ -211,7 +217,8 @@ class NextMultiplierModel:
             "n_train": int(len(train_X)),
             "n_val": int(val_size),
             "class_weights": class_weights,
-            "val_metrics": metrics
+            "val_metrics": metrics,
+            "final_epoch": len(history.history['loss'])
         }
 
     def predict_prob(self, multiplier: float, totalvalue: float) -> float:
@@ -242,7 +249,7 @@ if __name__ == "__main__":
     json_path = "screen_data.json"
 
     model = NextMultiplierModel()
-    info = model.fit(json_path=json_path, epochs=150)
+    info = model.fit(json_path=json_path, epochs=100)
     print("Resumo do treino:", info)
 
     # Exemplo de predição: forneça multiplier e totalvalue
