@@ -9,12 +9,16 @@ import subprocess
 import os
 from datetime import datetime
 from pathlib import Path
+import warnings
 from PIL import Image
 import pytesseract
 import shutil
 import sys
 import numpy as np
 from tensor import NextMultiplierModel, parse_totalvalue  # Importar o modelo e a função de parsing
+
+# Suprimir warning do urllib3 sobre SSL
+warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL")
 
 class RealTimeEvaluator:
     def __init__(self, interval=1.0, region=None, model_path="next_multiplier_model.keras"):
@@ -172,6 +176,11 @@ class RealTimeEvaluator:
         valorPremioValido = None
         ultimoValorPremio = None
         
+        # Para aprendizado online: armazenar dados para retreinamento
+        online_X = []
+        online_y = []
+        last_predicted_x = None  # Armazenar a última predição para parear com o próximo y
+        
         while self.running:
             try:
                 # Capture screenshot
@@ -199,10 +208,41 @@ class RealTimeEvaluator:
                 #print("primeirovalorNovo: ", primeirovalorNovo)
                 #print("segundoValorNovo: ", segundoValorNovo)
                 
+                # Validar predição anterior com o novo segundoValorNovo
+                if last_predicted_x is not None and segundoValorNovo is not None:
+                    true_y = 1 if segundoValorNovo > 2.0 else 0
+                    online_X.append(last_predicted_x)
+                    online_y.append(true_y)
+                    last_predicted_x = None
+                    
+                    # Se temos pares suficientes, retreinar
+                    if len(online_X) >= 10:  # Ex.: a cada 10 amostras
+                        print("Retreinando modelo com dados online...")
+                        try:
+                            # Converter para arrays
+                            online_X_arr = np.vstack(online_X)
+                            online_y_arr = np.array(online_y, dtype=np.float32)
+                            
+                            # Aplicar scaler
+                            online_X_scaled = self.model.scaler.transform(online_X_arr)
+                            
+                            # Retreinar por algumas epochs
+                            self.model.model.fit(online_X_scaled, online_y_arr, epochs=5, verbose=0)
+                            
+                            # Salvar modelo atualizado
+                            self.model.save("next_multiplier_model.keras")
+                            print("Modelo retreinado e salvo.")
+                            
+                            # Limpar dados online
+                            online_X = []
+                            online_y = []
+                        except Exception as e:
+                            print(f"Erro no retreinamento online: {e}")
+                
                 if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
                     if valorPremioValido and not ultimoValorPremio:
                         #print("EITA: ", valorPremioValido, primeirovalorNovo, segundoValorNovo)
-                        print("Avaliando com: ", primeirovalorNovo, valorPremioValido)
+                        #print("Avaliando com: ", primeirovalorNovo, valorPremioValido)
                         # Aqui, ao invés de armazenar, avaliar a probabilidade
                         try:
                             # Usar a mesma função de parsing do tensor.py
@@ -212,6 +252,10 @@ class RealTimeEvaluator:
                                 prob = self.model.predict_prob(primeirovalorNovo, totalvalue_parsed)
                                 #print("prob: ", prob)
                                 print(f"Probabilidade do próximo multiplicador > 2x: {prob:.4f}")
+                                
+                                # Armazenar para feedback online
+                                current_x = np.array([primeirovalorNovo, totalvalue_parsed, totalvalue_parsed / primeirovalorNovo if primeirovalorNovo != 0 else 0.0], dtype=np.float32)
+                                last_predicted_x = current_x  # Armazenar para parear com próximo y
                                 
                                 # Avaliar se probabilidade > 2.0 (nota: probabilidades são <=1, talvez você queira >0.5?)
                                 if prob > 0.6:  # Isso nunca será verdadeiro, pois prob <=1

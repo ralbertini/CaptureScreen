@@ -6,6 +6,10 @@ import tensorflow as tf
 from typing import Tuple, List, Dict, Any
 from sklearn.preprocessing import RobustScaler
 import joblib
+import warnings
+
+# Suprimir warning do urllib3 sobre SSL
+warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL")
 
 # Fixar sementes para reprodutibilidade (não elimina variação com poucos dados)
 tf.random.set_seed(42)
@@ -110,19 +114,24 @@ def load_and_prepare_dataset(json_path: str) -> Tuple[np.ndarray, np.ndarray]:
 # ------------------------------------------------------------
 def build_model(input_dim: int) -> tf.keras.Model:
     """
-    Constrói um MLP simples com RobustScaler aplicado externamente.
-    Para dataset com outliers, usa RobustScaler em vez de Normalization.
+    Constrói um MLP aprimorado com BatchNormalization e mais camadas para melhor performance.
     """
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(input_dim,)),
-        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(4, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.05)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.05)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(4, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.05)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(1, activation='sigmoid')
     ])
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
         loss='binary_crossentropy',
         metrics=[tf.keras.metrics.AUC(name='auc'), tf.keras.metrics.Precision(name='precision'), tf.keras.metrics.Recall(name='recall')]
     )
@@ -150,7 +159,7 @@ class NextMultiplierModel:
         self.scaler: RobustScaler = RobustScaler()
         self.input_dim: int = 3  # [multiplier, totalvalue, unitvalue]
 
-    def fit(self, json_path: str, epochs: int = 100) -> Dict[str, Any]:
+    def fit(self, json_path: str, epochs: int = 300) -> Dict[str, Any]:
         """
         Treina o modelo a partir do JSON.
         Ajustado para dataset maior: mais epochs possíveis, validação robusta.
@@ -259,7 +268,7 @@ if __name__ == "__main__":
     json_path = "screen_data.json"
 
     model = NextMultiplierModel()
-    info = model.fit(json_path=json_path, epochs=100)
+    info = model.fit(json_path=json_path, epochs=300)
     print("Resumo do treino:", info)
 
     # Exemplo de predição: forneça multiplier e totalvalue
