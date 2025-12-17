@@ -276,7 +276,7 @@ def main():
             return (0, 0, 800, 600)
     
     chrome_region = get_chrome_window_bounds()
-    evaluator = RealTimeEvaluator(interval=0.3, region=chrome_region, model_path="next_multiplier_model.keras")
+    evaluator = RealTimeEvaluator(interval=0.1, region=chrome_region, model_path="next_multiplier_model.keras")
     
     evaluator.start()
     

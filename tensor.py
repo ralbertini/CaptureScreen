@@ -4,6 +4,8 @@ import math
 import numpy as np
 import tensorflow as tf
 from typing import Tuple, List, Dict, Any
+from sklearn.preprocessing import RobustScaler
+import joblib
 
 # Fixar sementes para reprodutibilidade (não elimina variação com poucos dados)
 tf.random.set_seed(42)
@@ -106,18 +108,13 @@ def load_and_prepare_dataset(json_path: str) -> Tuple[np.ndarray, np.ndarray]:
 # ------------------------------------------------------------
 # Modelo Keras (classificador binário)
 # ------------------------------------------------------------
-def build_model(input_dim: int, train_X: np.ndarray) -> tf.keras.Model:
+def build_model(input_dim: int) -> tf.keras.Model:
     """
-    Constrói um MLP simples com camada de Normalization adaptada ao train_X.
-    Para dataset pequeno, usa arquitetura mais simples com regularização forte.
+    Constrói um MLP simples com RobustScaler aplicado externamente.
+    Para dataset com outliers, usa RobustScaler em vez de Normalization.
     """
-    normalizer = tf.keras.layers.Normalization(axis=-1)
-    if train_X.shape[0] > 0:
-        normalizer.adapt(train_X)
-
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(input_dim,)),
-        normalizer,
         tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
         tf.keras.layers.Dropout(0.3),
         tf.keras.layers.Dense(4, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
@@ -150,6 +147,7 @@ def compute_class_weights(y: np.ndarray) -> Dict[int, float]:
 class NextMultiplierModel:
     def __init__(self):
         self.model: tf.keras.Model = None
+        self.scaler: RobustScaler = RobustScaler()
         self.input_dim: int = 3  # [multiplier, totalvalue, unitvalue]
 
     def fit(self, json_path: str, epochs: int = 100) -> Dict[str, Any]:
@@ -173,13 +171,20 @@ class NextMultiplierModel:
         if val_size > 0:
             train_X, val_X = X[:-val_size], X[-val_size:]
             train_y, val_y = y[:-val_size], y[-val_size:]
+            # Aplicar RobustScaler
+            self.scaler.fit(train_X)
+            train_X = self.scaler.transform(train_X)
+            val_X = self.scaler.transform(val_X)
             validation_data = (val_X, val_y)
         else:
             train_X, train_y = X, y
             val_X, val_y = None, None
+            # Aplicar RobustScaler mesmo sem validação
+            self.scaler.fit(train_X)
+            train_X = self.scaler.transform(train_X)
             validation_data = None
 
-        self.model = build_model(self.input_dim, train_X)
+        self.model = build_model(self.input_dim)
         class_weights = compute_class_weights(train_y)
 
         callbacks = []
@@ -230,6 +235,7 @@ class NextMultiplierModel:
             raise RuntimeError("Modelo não treinado. Chame .fit(json_path) antes.")
 
         x = build_feature_vector(multiplier, totalvalue).reshape(1, -1)
+        x = self.scaler.transform(x)
         prob = float(self.model.predict(x, verbose=0)[0][0])
         return prob
 
@@ -237,9 +243,13 @@ class NextMultiplierModel:
         if self.model is None:
             raise RuntimeError("Modelo não treinado. Nada para salvar.")
         self.model.save(path)
+        scaler_path = path.replace('.keras', '.scaler.pkl')
+        joblib.dump(self.scaler, scaler_path)
 
     def load(self, path: str = "next_multiplier_model.keras"):
         self.model = tf.keras.models.load_model(path)
+        scaler_path = path.replace('.keras', '.scaler.pkl')
+        self.scaler = joblib.load(scaler_path)
 
 # ------------------------------------------------------------
 # Exemplo de uso
