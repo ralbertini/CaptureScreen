@@ -171,11 +171,12 @@ class NextMultiplierModel:
         
         # Para dataset maior, usar validação adequada
         if len(X) >= 20:
-            val_size = max(5, int(0.2 * len(X)))  # 20% para validação
+            val_size = max(5, int(0.3 * len(X)))  # 20% para validação
         elif len(X) >= 10:
             val_size = max(2, int(0.15 * len(X)))
         else:
             val_size = 0
+            print("val_size: {val_size}")
 
         if val_size > 0:
             train_X, val_X = X[:-val_size], X[-val_size:]

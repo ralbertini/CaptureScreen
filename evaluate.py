@@ -209,35 +209,35 @@ class RealTimeEvaluator:
                 #print("segundoValorNovo: ", segundoValorNovo)
                 
                 # Validar predição anterior com o novo segundoValorNovo
-                if last_predicted_x is not None and segundoValorNovo is not None:
-                    true_y = 1 if segundoValorNovo > 2.0 else 0
-                    online_X.append(last_predicted_x)
-                    online_y.append(true_y)
-                    last_predicted_x = None
+                # if last_predicted_x is not None and segundoValorNovo is not None:
+                #     true_y = 1 if segundoValorNovo > 2.0 else 0
+                #     online_X.append(last_predicted_x)
+                #     online_y.append(true_y)
+                #     last_predicted_x = None
                     
-                    # Se temos pares suficientes, retreinar
-                    if len(online_X) >= 10:  # Ex.: a cada 10 amostras
-                        print("Retreinando modelo com dados online...")
-                        try:
-                            # Converter para arrays
-                            online_X_arr = np.vstack(online_X)
-                            online_y_arr = np.array(online_y, dtype=np.float32)
+                #     # Se temos pares suficientes, retreinar
+                #     if len(online_X) >= 10:  # Ex.: a cada 10 amostras
+                #         print("Retreinando modelo com dados online...")
+                #         try:
+                #             # Converter para arrays
+                #             online_X_arr = np.vstack(online_X)
+                #             online_y_arr = np.array(online_y, dtype=np.float32)
                             
-                            # Aplicar scaler
-                            online_X_scaled = self.model.scaler.transform(online_X_arr)
+                #             # Aplicar scaler
+                #             online_X_scaled = self.model.scaler.transform(online_X_arr)
                             
-                            # Retreinar por algumas epochs
-                            self.model.model.fit(online_X_scaled, online_y_arr, epochs=5, verbose=0)
+                #             # Retreinar por algumas epochs
+                #             self.model.model.fit(online_X_scaled, online_y_arr, epochs=5, verbose=0)
                             
-                            # Salvar modelo atualizado
-                            self.model.save("next_multiplier_model.keras")
-                            print("Modelo retreinado e salvo.")
+                #             # Salvar modelo atualizado
+                #             self.model.save("next_multiplier_model.keras")
+                #             print("Modelo retreinado e salvo.")
                             
-                            # Limpar dados online
-                            online_X = []
-                            online_y = []
-                        except Exception as e:
-                            print(f"Erro no retreinamento online: {e}")
+                #             # Limpar dados online
+                #             online_X = []
+                #             online_y = []
+                #         except Exception as e:
+                #             print(f"Erro no retreinamento online: {e}")
                 
                 if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
                     if valorPremioValido and not ultimoValorPremio:
@@ -326,7 +326,7 @@ def main():
     
     try:
         # Let it run for 10 seconds
-        time.sleep(3600)
+        time.sleep(28800) # 8 hours
     except KeyboardInterrupt:
         print("\nInterrupted by user")
     finally:

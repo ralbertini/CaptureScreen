@@ -324,7 +324,7 @@ def main():
     
     try:
         #tempo de captura, em segundos
-        time.sleep(28800)
+        time.sleep(28800) # 8 hours
     except KeyboardInterrupt:
         print("\nInterrupted by user")
     finally:
