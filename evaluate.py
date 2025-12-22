@@ -1,75 +1,176 @@
+
+# -*- coding: utf-8 -*-
 """
 Avaliação em tempo real usando Tesseract e modelo treinado
 Captura screenshots, extrai texto e avalia probabilidade em tempo real
 """
-
+from __future__ import annotations
 import threading
 import time
 import subprocess
 import os
 from datetime import datetime
-from pathlib import Path
 import warnings
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter
 import pytesseract
 import shutil
 import sys
 import numpy as np
-from tensor import NextMultiplierModel, parse_totalvalue  # Importar o modelo e a função de parsing
+import re
+from collections import deque
+
+# Importar o modelo e a função de parsing robusta do seu módulo 'tensor.py'
+from tensor import NextMultiplierModel, parse_totalvalue
 
 # Suprimir warning do urllib3 sobre SSL
 warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL")
 
+
 class RealTimeEvaluator:
-    def __init__(self, interval=1.0, region=None, model_path="next_multiplier_model.keras"):
+    def __init__(self, interval=0.5, region=None, model_path="next_multiplier_model.keras", lang='por'):
         """
-        Initialize real-time evaluator
-        
         Args:
-            interval: Capture interval in seconds (default: 1)
-            region: Tuple (x, y, width, height) for specific screen region. None = full screen
-            model_path: Path to the trained model file
+            interval: intervalo de captura em segundos
+            region: (x, y, w, h) da região a capturar. None = tela inteira
+            model_path: caminho do modelo treinado (.keras)
+            lang: idioma do Tesseract (ex.: 'por')
         """
-        self.interval = interval
-        self.region = region  # (x, y, width, height)
+        self.interval = float(interval)
+        self.region = region  # (x, y, w, h)
         self.running = False
-        
-        # Load the trained model
+        self.lang = lang
+
+        # Históricos para médias móveis (incluem o valor atual quando disponível)
+        self.mult_hist = deque(maxlen=50)
+        self.total_hist = deque(maxlen=50)
+
+        # Init Tesseract uma vez
+        tess_path = shutil.which("tesseract")
+        if not tess_path:
+            raise EnvironmentError("tesseract não encontrado. Instale com: brew install tesseract")
+        pytesseract.pytesseract.tesseract_cmd = tess_path
+
+        # Carrega o modelo treinado (inclui scaler, threshold e outlier_threshold dos metadados)
         self.model = NextMultiplierModel()
         try:
             self.model.load(model_path)
             print(f"Modelo carregado de {model_path}")
+            print(f"Threshold de decisão: {getattr(self.model, 'decision_threshold', 0.5)} | outlier_threshold: {getattr(self.model, 'outlier_threshold', 100.0)}")
         except Exception as e:
             print(f"Erro ao carregar modelo: {e}")
             sys.exit(1)
-    
-    def capture_screenshot(self):
+
+        # Regiões RELATIVAS à captura atual (0,0 = topo-esquerdo da imagem capturada)
+        # ⚠️ Ajuste estas coordenadas ao seu layout da janela capturada!
+        self.REL_REGIONS = {
+            "voou": (1110, 452, 346, 49),          # Texto "VOOU PARA LONGE!"
+            "premio_total": (645, 413, 150, 35),   # Campo "Total pago"
+            "multiplicadores": (745, 359, 245, 38) # Faixa com multiplicadores (ex.: "1.10x 1.12x ...")
+        }
+
+    # ---------- Utilidades de OCR ----------
+    def _preprocess(self, img: Image.Image, for_digits=False) -> Image.Image:
+        """Upsample, autocontraste e threshold leve para ajudar o OCR."""
+        out = img.convert("L")
+        out = out.resize((out.width * 2, out.height * 2), resample=Image.LANCZOS)
+        out = ImageOps.autocontrast(out)
+        out = out.filter(ImageFilter.SHARPEN)
+        # threshold simples
+        out = out.point(lambda p: 255 if p > 180 else 0)
+        return out
+
+    def _ocr(self, img: Image.Image, config: str) -> str:
+        try:
+            return pytesseract.image_to_string(img, config=config, lang=self.lang).strip()
+        except Exception as e:
+            print(f"OCR error: {e}")
+            return ""
+
+    def _crop(self, image: Image.Image, box):
+        x, y, w, h = box
+        return image.crop((x, y, x + w, y + h))
+
+    def capture_screenshot(self) -> Image.Image | None:
         """
-        Capture a screenshot using macOS screencapture command
-        Returns PIL Image object
+        Captura screenshot usando 'screencapture' (macOS) e retorna PIL Image.
         """
         temp_file = "/tmp/evaluate.png"
-        
         if self.region:
-            x, y, width, height = self.region
-            # screencapture -R x,y,width,height
-            cmd = ["screencapture", "-R", f"{x},{y},{width},{height}", temp_file]
+            x, y, w, h = self.region
+            cmd = ["screencapture", "-x", "-t", "png", "-R", f"{x},{y},{w},{h}", temp_file]
         else:
-            cmd = ["screencapture", temp_file]
-        
+            cmd = ["screencapture", "-x", "-t", "png", temp_file]
+
         try:
             subprocess.run(cmd, check=True, capture_output=True)
-            image = Image.open(temp_file)
+            image = Image.open(temp_file).convert("RGB")
+            image.load()  # carrega para memória
+            try:
+                os.remove(temp_file)
+            except Exception:
+                pass
             return image
         except subprocess.CalledProcessError as e:
-            print(f"Error capturing screenshot: {e}")
+            print(f"Erro ao capturar screenshot: {e}")
             return None
         except Exception as e:
-            print(f"Error processing screenshot: {e}")
+            print(f"Erro processando screenshot: {e}")
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except:
+                pass
             return None
 
+    def get_voou_para_longe(self, image: Image.Image) -> bool:
+        box = self.REL_REGIONS["voou"]
+        cropped = self._crop(image, box)
+        proc = self._preprocess(cropped, for_digits=False)
+        # psm 7 para linha única de texto curto
+        text = self._ocr(proc, config="--psm 7 --oem 1")
+        norm = re.sub(r"[^A-Z0-9]", "", text.upper())
+        return "VOOUPARALONGE" in norm  # tolera pequenas variações
+
+    def capture_premio_total(self, image: Image.Image) -> str | None:
+        box = self.REL_REGIONS["premio_total"]
+        cropped = self._crop(image, box)
+        proc = self._preprocess(cropped, for_digits=True)
+        # restringe caracteres a dígitos, ponto e vírgula
+        text = self._ocr(proc, config="--psm 7 --oem 1 -c tessedit_char_whitelist=0123456789.,")
+        return text if text else None
+
+    def extract_multipliers_text(self, image: Image.Image) -> str:
+        box = self.REL_REGIONS["multiplicadores"]
+        cropped = self._crop(image, box)
+        proc = self._preprocess(cropped, for_digits=True)
+        text = self._ocr(proc, config="--psm 7 --oem 1 -c tessedit_char_whitelist=0123456789.xX")
+        return text
+
+    def parse_multipliers(self, text: str):
+        """Extrai até dois multiplicadores (float) de um texto (preferência por número seguido de 'x')."""
+        
+        #print(f"Texto bruto de multiplicadores: '{text}'")
+        if not text:
+            return None, None
+        matches = re.findall(r"(\d+(?:\.\d+)?)(?=\s*[xX])", text)
+        if not matches:
+            matches = re.findall(r"(\d+(?:\.\d+)?)", text)
+        floats = []
+        for m in matches:
+            try:
+                floats.append(float(m))
+            except:
+                continue
+            if len(floats) >= 2:
+                break
+        first = floats[0] if len(floats) >= 1 else None
+        second = floats[1] if len(floats) >= 2 else None
+        #print(f"Multiplicadores extraídos: {first}, {second}")
+        return first, second
+
     def getVoouParaLonge(self, image):
-        region3 = (1110, 452, 346, 49) # Voou para longe
+        #region3 = (1110, 452, 346, 49) # Voou para longe
+        region = self.REL_REGIONS["voou"]
         try:
             tess_path = shutil.which("tesseract")
             if tess_path:
@@ -77,17 +178,17 @@ class RealTimeEvaluator:
             else:
                 raise EnvironmentError("tesseract is not installed or it's not in your PATH")
             
-            x, y, w, h = region3
+            x, y, w, h = region
             cropped = image.crop((x, y, x + w, y + h))
             text3 = pytesseract.image_to_string(cropped).strip()
             if text3 == "VOOU PARA LONGE!":
                 return True
         except Exception as e:
             print(f"Error extracting text: {e}. Install tesseract (macOS): `brew install tesseract`")
-            return False        
-        
+            return False    
     def capturePremioTotal(self, image):
-        region = (645, 413, 145, 33)    # Total pago
+        #region = (645, 413, 145, 33)    # Total pago
+        region = self.REL_REGIONS["premio_total"]
 
         try:
             tess_path = shutil.which("tesseract")
@@ -105,10 +206,11 @@ class RealTimeEvaluator:
         except Exception as e:
             print(f"Error extracting text: {e}. Install tesseract (macOS): `brew install tesseract`")
             return "" 
-          
+        
     def extract_text2(self, image):
 
-        region = (745, 359, 245, 38)      # Multiplicadores
+        #region = (745, 359, 245, 38)      # Multiplicadores
+        region = self.REL_REGIONS["multiplicadores"]
         
         try:
             tess_path = shutil.which("tesseract")
@@ -132,42 +234,13 @@ class RealTimeEvaluator:
             return ultimovalor, text
         except Exception as e:
             print(f"Error extracting text: {e}. Install tesseract (macOS): `brew install tesseract`")
-            return ""    
-
-    def parse_multipliers(self, text: str):
-        """
-        Parse a string containing multiplier values like
-        "1.10x 1.12x 1.14x ..." and return the first two numbers as floats.
-        """
-        import re
-
-        if not text:
-            return None, None
-
-        # Prefer numbers followed by 'x' (case-insensitive)
-        matches = re.findall(r"(\d+(?:\.\d+)?)(?=\s*[xX])", text)
-
-        # Fallback: any numbers if none found with 'x'
-        if not matches:
-            matches = re.findall(r"(\d+(?:\.\d+)?)", text)
-
-        floats = []
-        for m in matches:
-            try:
-                floats.append(float(m))
-            except Exception:
-                continue
-            if len(floats) >= 2:
-                break
-
-        first = floats[0] if len(floats) >= 1 else None
-        second = floats[1] if len(floats) >= 2 else None
-        return first, second
-    
-    def evaluate_loop(self):
-        """Main evaluation loop running in background thread"""
+            return ""      
         
-        primeirovalorNovo = None
+    # ---------- Loop principal ----------
+    def evaluate_loop(self):
+        premio_encontrado: str | None = None  # armazena texto do "Total pago" detectado ao ver "voou"
+
+        primeirovalorNovo= None
         segundoValorNovo = None
         
         primeirovalorAntigo = None
@@ -175,163 +248,151 @@ class RealTimeEvaluator:
         
         valorPremioValido = None
         ultimoValorPremio = None
-        
-        # Para aprendizado online: armazenar dados para retreinamento
-        online_X = []
-        online_y = []
-        last_predicted_x = None  # Armazenar a última predição para parear com o próximo y
-        
+
+        print("Iniciando loop de avaliação em tempo real...")
         while self.running:
             try:
-                # Capture screenshot
                 image = self.capture_screenshot()
                 if image is None:
                     time.sleep(self.interval)
                     continue
-                
-                # Extract text
-                ultimoValorPremio, text = self.extract_text2(image)
-                #print("Texto extraido: ", text, "timestamp: ", datetime.now().isoformat())
-                #print("Ultimo valor capturado: ", ultimoValorPremio)
+                else:
+                # 1) Detecta "voou" e captura "Total pago" (texto cru)
+                # voou = self.get_voou_para_longe(image)
+                # if voou:
+                #     premio_text = self.capture_premio_total(image)
+                #     if premio_text:
+                #         premio_encontrado = premio_text
 
-                if ultimoValorPremio:
-                    valorPremioValido = ultimoValorPremio
+                # # Extract text
+                # ultimoValorPremio,text = self.extract_text2(image)
+                # print(f"Voou: {voou} | Premio capturado: {premio_encontrado} | Texto multiplicadores: '{text}'")
+
+                # # 2) Extrai multiplicadores e pega o primeiro (m1)
+                # mult_text = self.extract_multipliers_text(image)
+                # m1, m2 = self.parse_multipliers(mult_text)
+                    ultimoValorPremio,text = self.extract_text2(image)
+
+                    if ultimoValorPremio:
+                        valorPremioValido = ultimoValorPremio
             
-                primeirovalorAntigo = primeirovalorNovo
-                segundoValorAntigo = segundoValorNovo
+                    primeirovalorAntigo = primeirovalorNovo
+                    segundoValorAntigo = segundoValorNovo
                 
-                primeirovalorNovo, segundoValorNovo = self.parse_multipliers(text)
-                
-                #print("primeirovalorAntigo: ", primeirovalorAntigo)
-                #print("segundoValorAntigo: ", segundoValorAntigo)
-                
-                #print("primeirovalorNovo: ", primeirovalorNovo)
-                #print("segundoValorNovo: ", segundoValorNovo)
-                
-                # Validar predição anterior com o novo segundoValorNovo
-                # if last_predicted_x is not None and segundoValorNovo is not None:
-                #     true_y = 1 if segundoValorNovo > 2.0 else 0
-                #     online_X.append(last_predicted_x)
-                #     online_y.append(true_y)
-                #     last_predicted_x = None
-                    
-                #     # Se temos pares suficientes, retreinar
-                #     if len(online_X) >= 10:  # Ex.: a cada 10 amostras
-                #         print("Retreinando modelo com dados online...")
-                #         try:
-                #             # Converter para arrays
-                #             online_X_arr = np.vstack(online_X)
-                #             online_y_arr = np.array(online_y, dtype=np.float32)
+                    primeirovalorNovo, segundoValorNovo = self.parse_multipliers(text)
+                    if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
+
+                        if valorPremioValido and primeirovalorNovo and not ultimoValorPremio:
+
+                            m1 = primeirovalorNovo
+                            premio_encontrado = valorPremioValido
+                            # 3) Atualiza históricos quando valores válidos existem
+                            if m1 is not None and premio_encontrado:
+                                tv_parsed = parse_totalvalue(premio_encontrado)  # usa parser robusto do módulo 'tensor'
+                                if not np.isnan(tv_parsed):
+                                    self.mult_hist.append(float(m1))
+                                    self.total_hist.append(float(tv_parsed))
                             
-                #             # Aplicar scaler
-                #             online_X_scaled = self.model.scaler.transform(online_X_arr)
-                            
-                #             # Retreinar por algumas epochs
-                #             self.model.model.fit(online_X_scaled, online_y_arr, epochs=5, verbose=0)
-                            
-                #             # Salvar modelo atualizado
-                #             self.model.save("next_multiplier_model.keras")
-                #             print("Modelo retreinado e salvo.")
-                            
-                #             # Limpar dados online
-                #             online_X = []
-                #             online_y = []
-                #         except Exception as e:
-                #             print(f"Erro no retreinamento online: {e}")
-                
-                if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
-                    if valorPremioValido and not ultimoValorPremio:
-                        #print("EITA: ", valorPremioValido, primeirovalorNovo, segundoValorNovo)
-                        #print("Avaliando com: ", primeirovalorNovo, valorPremioValido)
-                        # Aqui, ao invés de armazenar, avaliar a probabilidade
-                        try:
-                            # Usar a mesma função de parsing do tensor.py
-                            totalvalue_parsed = parse_totalvalue(valorPremioValido)
-                            print(f"Valores para predição: multiplier={primeirovalorNovo}, totalvalue_parsed={totalvalue_parsed}")
-                            if not np.isnan(totalvalue_parsed) and primeirovalorNovo is not None:
-                                prob = self.model.predict_prob(primeirovalorNovo, totalvalue_parsed)
-                                #print("prob: ", prob)
-                                print(f"Probabilidade do próximo multiplicador > 2x: {prob:.4f}")
-                                
-                                # Armazenar para feedback online
-                                current_x = np.array([primeirovalorNovo, totalvalue_parsed, totalvalue_parsed / primeirovalorNovo if primeirovalorNovo != 0 else 0.0], dtype=np.float32)
-                                last_predicted_x = current_x  # Armazenar para parear com próximo y
-                                
-                                # Avaliar se probabilidade > 2.0 (nota: probabilidades são <=1, talvez você queira >0.5?)
-                                if prob > 0.6:  # Isso nunca será verdadeiro, pois prob <=1
-                                    print("ALERTA: Probabilidade alta detectada!")
-                            else:
-                                print("Valores inválidos, pulando avaliação")
-                        except Exception as e:
-                            print(f"Erro na predição: {e}")
-                        
-                        valorPremioValido = None
-                
+                            # 4) Predição: quando temos prêmio válido e NÃO estamos no mesmo frame de "voou"
+                            if premio_encontrado and (m1 is not None):
+                                try:
+                                    tv_parsed = parse_totalvalue(premio_encontrado)
+                                    if not np.isnan(tv_parsed):
+                                        # Usa o modelo para construir as **11 features** (inclui flags zero/outlier)
+                                        prob = self.model.predict_prob(
+                                            multiplier=float(m1),
+                                            totalvalue=float(tv_parsed),
+                                            mult_hist=list(self.mult_hist),
+                                            total_hist=list(self.total_hist)
+                                        )
+                                        # Usa o threshold aprendido (salvo em meta.json). Fallback 0.6 se não disponível.
+                                        try:
+                                            label = self.model.predict_label(
+                                                multiplier=float(m1),
+                                                totalvalue=float(tv_parsed),
+                                                mult_hist=list(self.mult_hist),
+                                                total_hist=list(self.total_hist)
+                                            )   
+                                            threshold = getattr(self.model, "decision_threshold", 0.6)
+                                        except Exception:
+                                            label = int(prob >= 0.6)
+                                            threshold = 0.6
+
+                                        print("--------------------------------")
+                                        #print(f"[{datetime.now().isoformat()}]")
+                                        print(
+                                            f"multiplicador=>{m1:.2f} | total=>{tv_parsed:.2f} | "
+                                            f"prob(next>2x) => {prob:.3f}"
+                                        )
+                                        valorPremioValido = None
+                            #if prob >= threshold:
+                            #    print("ALERTA: Probabilidade alta detectada!")
+
+                                except Exception as e:
+                                    print(f"Erro na avaliação: {e}")
+
+                    # Limpa prêmio para evitar reuso indevido no próximo frame
+                                premio_encontrado = None
+
+                # Fecha imagem explicitamente
+                image.close()
+
             except Exception as e:
-                print(f"Error in evaluation loop: {e}")
-            
+                print(f"Erro no loop principal: {e}")
+
             time.sleep(self.interval)
-    
+
     def start(self):
-        """Start evaluating"""
         if self.running:
-            print("Evaluator already running")
+            print("Evaluator já está rodando")
             return
-        
         self.running = True
         self.thread = threading.Thread(target=self.evaluate_loop, daemon=True)
         self.thread.start()
-        print(f"Real-time evaluator started (interval: {self.interval}s)")
-    
+        print(f"Real-time evaluator iniciado (intervalo: {self.interval}s)")
+
     def stop(self):
-        """Stop evaluating"""
         self.running = False
         if hasattr(self, 'thread'):
             self.thread.join(timeout=2)
-        print("Real-time evaluator stopped")
+        print("Real-time evaluator parado")
 
+
+# --------- Execução ---------
+def get_chrome_window_bounds():
+    """Bounds da janela ativa do Chrome via AppleScript (macOS)."""
+    script = '''tell application "Google Chrome"
+        if (count of windows) = 0 then
+            return ""
+        end if
+        set b to bounds of front window
+        return b
+    end tell'''
+    try:
+        result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=5)
+        if result.returncode != 0:
+            raise Exception(f"AppleScript falhou: {result.stderr}")
+        bounds_str = result.stdout.strip()
+        if not bounds_str:
+            raise Exception("Nenhuma janela retornada")
+        bounds = list(map(int, bounds_str.split(", ")))
+        x1, y1, x2, y2 = bounds
+        return (x1, y1, x2 - x1, y2 - y1)
+    except Exception as e:
+        print(f"Erro obtendo bounds do Chrome: {e}")
+        print("Usando fallback (0, 0, 800, 600)")
+        return (0, 0, 800, 600)
 
 def main():
-    """Example usage"""
-    
-    # Get Google Chrome window bounds and capture only that area
-    def get_chrome_window_bounds():
-        """Get the bounds of the frontmost Google Chrome window"""
-        script = '''tell application "Google Chrome"
-            if (count of windows) = 0 then
-                return ""
-            end if
-            set b to bounds of front window
-            return b
-        end tell'''
-        try:
-            result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=5)
-            if result.returncode != 0:
-                raise Exception(f"AppleScript failed: {result.stderr}")
-            bounds_str = result.stdout.strip()
-            if not bounds_str:
-                raise Exception("No bounds returned")
-            bounds = list(map(int, bounds_str.split(", ")))
-            x, y, w, h = bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1]
-            return (x, y, w, h)
-        except Exception as e:
-            print(f"Error getting Chrome bounds: {e}")
-            print("Using fallback region (0, 0, 800, 600)")
-            return (0, 0, 800, 600)
-    
     chrome_region = get_chrome_window_bounds()
-    evaluator = RealTimeEvaluator(interval=0.1, region=chrome_region, model_path="next_multiplier_model.keras")
-    
+    evaluator = RealTimeEvaluator(interval=0.0, region=chrome_region, model_path="next_multiplier_model.keras", lang='por')
     evaluator.start()
-    
     try:
-        # Let it run for 10 seconds
-        time.sleep(28800) # 8 hours
+        time.sleep(28800)  # 8 horas
     except KeyboardInterrupt:
-        print("\nInterrupted by user")
+        print("\nInterrompido pelo usuário")
     finally:
         evaluator.stop()
-
 
 if __name__ == "__main__":
     main()

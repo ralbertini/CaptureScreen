@@ -1,0 +1,18 @@
+{
+  "input_dim": 11,
+  "feature_names": [
+    "multiplier",
+    "totalvalue",
+    "unitvalue",
+    "ma_mult_5",
+    "ma_mult_10",
+    "ma_mult_15",
+    "ma_total_5",
+    "ma_total_10",
+    "ma_total_15",
+    "is_zero_total",
+    "is_outlier_multiplier"
+  ],
+  "decision_threshold": 0.12346602976322174,
+  "outlier_threshold": 50.0
+}

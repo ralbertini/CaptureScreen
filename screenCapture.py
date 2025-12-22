@@ -170,7 +170,6 @@ class ScreenReader:
         segundoValorAntigo = None
         
         valorPremioValido = None
-        valorPremioValidoUltimoInserido = None
         ultimoValorPremio = None
         
         while self.running:
@@ -184,8 +183,6 @@ class ScreenReader:
                 
                     # Extract text
                     ultimoValorPremio,text = self.extract_text2(image)
-                    #print("Texto extraido: ", text, "timestamp: ", datetime.now().isoformat())
-                    #print("Ultimo valor capturado: ", ultimoValorPremio)
 
                     if ultimoValorPremio:
                         valorPremioValido = ultimoValorPremio
@@ -195,14 +192,8 @@ class ScreenReader:
                 
                     primeirovalorNovo, segundoValorNovo = self.parse_multipliers(text)
                 
-                    #   print("primeirovalorAntigo: ", primeirovalorAntigo)
-                    #   print("segundoValorAntigo: ", segundoValorAntigo)
-                
-                    #   print("primeirovalorNovo: ", primeirovalorNovo)
-                    #  print("segundoValorNovo: ", segundoValorNovo)
-                
                     if primeirovalorNovo == primeirovalorAntigo and segundoValorNovo == segundoValorAntigo:
-                        if valorPremioValido and not ultimoValorPremio:
+                        if valorPremioValido and primeirovalorNovo and not ultimoValorPremio:
                             #valorPremioValidoUltimoInserido = valorPremioValido
                             print("ADICIONADO: ",valorPremioValido, primeirovalorNovo)
                          
